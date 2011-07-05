@@ -1,4 +1,10 @@
 <?php
+
+namespace Xi\Application;
+
+use Zend_Application,
+    Zend_Application_Exception;
+
 require_once "Zend/Application.php";
 
 /**
@@ -8,11 +14,11 @@ require_once "Zend/Application.php";
  * Good for both ease of maintenance and speed.
  * 
  * @author pekkis
- * @package Xi_Application
+ * @package Xi\Application
  * @todo Add more cache backends (Xcache, Zend Server etc)
  *
  */
-class Xi_Application_Application extends Zend_Application
+class Application extends Zend_Application
 {
     /**
      * Config is cached or not

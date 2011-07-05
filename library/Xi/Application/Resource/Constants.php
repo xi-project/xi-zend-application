@@ -1,12 +1,17 @@
 <?php
+
+namespace Xi\Application\Resource;
+
+use Zend_Application_Resource_ResourceAbstract as ResourceAbstract;
+
 /**
  * Constant setting resource
  * 
  * @author pekkis
- * @package Xi_Application
+ * @package Xi\Application
  *
  */
-class Xi_Application_Resource_Constants extends Zend_Application_Resource_ResourceAbstract
+class Constants extends ResourceAbstract
 {
 	
 	
