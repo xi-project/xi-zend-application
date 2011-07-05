@@ -30,8 +30,12 @@ class Xi_Application_Resource_Filelib extends Zend_Application_Resource_Resource
             // These are kludgings... rethink required 
             
             if (isset($options['cache'])) {
-                $this->getBootstrap()->bootstrap('cache');
-                $cache = Zend_Registry::get('Xi_CacheManager')->getCache($options['cache']);
+                $bootstrap = $this->getBootstrap();
+                $bootstrap->bootstrap('cache');
+
+                $cache = $bootstrap->getResource('cache')
+                                   ->getCache($options['cache']);
+
                 unset($options['cache']);
             } else {
                 $cache = false;
@@ -122,9 +126,7 @@ class Xi_Application_Resource_Filelib extends Zend_Application_Resource_Resource
      */
     public function init()
     {
-        $filelib = $this->getFilelib();
-        Zend_Registry::set('Xi_Filelib', $filelib);
-        return $filelib;
+        return $this->getFilelib();
     }
 
     
