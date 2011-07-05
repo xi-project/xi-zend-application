@@ -23,7 +23,6 @@ class Xi_Application_Resource_Cache extends Zend_Application_Resource_ResourceAb
         $opts = $this->getOptions();
         
         $cm = $this->getBootstrap()->bootstrap('cachemanager')->getResource('cachemanager');
-        Zend_Registry::set('Xi_CacheManager', $cm);
 
         if(isset($opts['framework'])) {
             foreach($opts['framework'] as $key => $cache) {
