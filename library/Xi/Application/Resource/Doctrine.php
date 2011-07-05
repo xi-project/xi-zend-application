@@ -1,8 +1,12 @@
 <?php
 
-use \Doctrine\ORM\EntityManager, \Doctrine\ORM\Configuration;
+namespace Xi\Application\Resource;
 
-class Xi_Application_Resource_Doctrine extends Zend_Application_Resource_ResourceAbstract
+use Zend_Application_Resource_ResourceAbstract as ResourceAbstract,
+    Doctrine\ORM\EntityManager,
+    Doctrine\ORM\Configuration;
+
+class Doctrine extends ResourceAbstract
 {
     
     public function init()
@@ -34,7 +38,6 @@ class Xi_Application_Resource_Doctrine extends Zend_Application_Resource_Resourc
 
         $em = EntityManager::create($options['connectionParams'], $config);
         
-        Zend_Registry::set('Xi_EntityManager', $em);
         return $em;
         
         

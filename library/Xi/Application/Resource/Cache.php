@@ -1,13 +1,25 @@
 <?php
+
+namespace Xi\Application\Resource;
+
+use Zend_Application_Resource_ResourceAbstract as ResourceAbstract,
+    Zend_Application_Exception,
+    Zend_Cache_Core,
+    Zend_Db_Table_Abstract,
+    Zend_Date,
+    Zend_Translate,
+    Zend_Locale,
+    Zend_Currency;
+
 /**
  * Cache resource
  * 
  * @author pekkis
- * @package Xi_Application
+ * @package Xi\Application
  * @todo The whole Zend Cache is soooo retarded. This does not work as it should work.
  *
  */
-class Xi_Application_Resource_Cache extends Zend_Application_Resource_ResourceAbstract
+class Cache extends ResourceAbstract
 {
 
     protected $backends;
@@ -23,7 +35,6 @@ class Xi_Application_Resource_Cache extends Zend_Application_Resource_ResourceAb
         $opts = $this->getOptions();
         
         $cm = $this->getBootstrap()->bootstrap('cachemanager')->getResource('cachemanager');
-        Zend_Registry::set('Xi_CacheManager', $cm);
 
         if(isset($opts['framework'])) {
             foreach($opts['framework'] as $key => $cache) {

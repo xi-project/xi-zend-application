@@ -1,24 +1,29 @@
 <?php
+
+namespace Xi\Application\Resource;
+
+use Zend_Application_Resource_ResourceAbstract as ResourceAbstract;
+
 /**
  * Filelib initialization
  * 
  * @author pekkis
- * @package Xi_Application
+ * @package Xi\Application
  * @todo Some kind of initializer stuff for converting resources to init
  *
  */
-class Xi_Application_Resource_Filelib extends Zend_Application_Resource_ResourceAbstract
+class Filelib extends ResourceAbstract
 {
 
     /**
-     * @var Xi\Filelib\FileLibrary
+     * @var \Xi\Filelib\FileLibrary
      */
     protected $_filelib;
 
     /**
      * Returns filelib
      * 
-     * @return Xi\Filelib\FileLibrary
+     * @return \Xi\Filelib\FileLibrary
      */
     public function getFilelib()
     {
@@ -30,8 +35,12 @@ class Xi_Application_Resource_Filelib extends Zend_Application_Resource_Resource
             // These are kludgings... rethink required 
             
             if (isset($options['cache'])) {
-                $this->getBootstrap()->bootstrap('cache');
-                $cache = Zend_Registry::get('Xi_CacheManager')->getCache($options['cache']);
+                $bootstrap = $this->getBootstrap();
+                $bootstrap->bootstrap('cache');
+
+                $cache = $bootstrap->getResource('cache')
+                                   ->getCache($options['cache']);
+
                 unset($options['cache']);
             } else {
                 $cache = false;
@@ -57,7 +66,7 @@ class Xi_Application_Resource_Filelib extends Zend_Application_Resource_Resource
             
             $backendOptions = $this->_handleBackendOptions($backendOptions);
 
-            $config = new Xi\Filelib\Configuration($options);
+            $config = new \Xi\Filelib\Configuration($options);
             if(isset($options['tempDir'])) {
                 $config->setTempDir($options['tempDir']);
             }
@@ -82,7 +91,7 @@ class Xi_Application_Resource_Filelib extends Zend_Application_Resource_Resource
 
                 $linker = new $linkerOptions['class']($linkerOptions['options']);
 
-                $profile = new Xi\Filelib\File\FileProfile($poptions);
+                $profile = new \Xi\Filelib\File\FileProfile($poptions);
                 $profile->setLinker($linker);
 
                 $config->addProfile($profile);
@@ -118,13 +127,11 @@ class Xi_Application_Resource_Filelib extends Zend_Application_Resource_Resource
     }
 
     /**
-     * @return Xi\Filelib\FileLibrary
+     * @return \Xi\Filelib\FileLibrary
      */
     public function init()
     {
-        $filelib = $this->getFilelib();
-        Zend_Registry::set('Xi_Filelib', $filelib);
-        return $filelib;
+        return $this->getFilelib();
     }
 
     
