@@ -1,13 +1,20 @@
 <?php
+
+namespace Xi\Application\Resource;
+
+use Zend_Application_Resource_ResourceAbstract as ResourceAbstract,
+    Zend_Exception,
+    MongoConnectionException;
+
 /**
  * Mongo resource
  * 
  * @author pekkis
- * @package Xi_Application
+ * @package Xi\Application
  * @todo Multiple mongoloids
  *
  */
-class Xi_Application_Resource_Mongo extends Zend_Application_Resource_ResourceAbstract
+class Mongo extends ResourceAbstract
 {
     protected $_options = array(
 		'hostname' => '127.0.0.1',
@@ -30,7 +37,7 @@ class Xi_Application_Resource_Mongo extends Zend_Application_Resource_ResourceAb
             $dns = "mongodb://{$options['hostname']}:{$options['port']}/{$options['databasename']}";
         }
         try {
-            $mongo = new Mongo($dns, array('connect' => $options['connect']));
+            $mongo = new \Mongo($dns, array('connect' => $options['connect']));
 
             // @todo: refuctor this kludgering
             if(isset($options['databasename'])) {

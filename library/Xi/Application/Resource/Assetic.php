@@ -1,5 +1,10 @@
 <?php
-class Xi_Application_Resource_Assetic extends Zend_Application_Resource_ResourceAbstract
+
+namespace Xi\Application\Resource;
+
+use Zend_Application_Resource_ResourceAbstract as ResourceAbstract;
+
+class Assetic extends ResourceAbstract
 {
 
     private $assetManager;
@@ -148,7 +153,7 @@ class Xi_Application_Resource_Assetic extends Zend_Application_Resource_Resource
                 }
                 
                 $diterator = new \RecursiveDirectoryIterator($parser['directory']);
-                $riterator = new RecursiveIteratorIterator($diterator, \RecursiveIteratorIterator::SELF_FIRST);
+                $riterator = new \RecursiveIteratorIterator($diterator, \RecursiveIteratorIterator::SELF_FIRST);
                                                 
                 foreach ($riterator as $file) {
                     if(isset($parser['blacklist'])) {
