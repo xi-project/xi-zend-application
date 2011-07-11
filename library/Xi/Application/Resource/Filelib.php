@@ -1,16 +1,31 @@
 <?php
 
+/**
+ * Xi
+ *
+ * LICENSE
+ *
+ * This source file is subject to the new BSD license that is bundled with this
+ * package in the file LICENSE.
+ *
+ * @category   Xi
+ * @package    Application
+ * @subpackage Resource
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause New BSD License
+ */
+
 namespace Xi\Application\Resource;
 
 use Zend_Application_Resource_ResourceAbstract as ResourceAbstract;
 
 /**
- * Filelib initialization
- * 
- * @author pekkis
- * @package Xi\Application
- * @todo Some kind of initializer stuff for converting resources to init
+ * Filelib initialization application resource
  *
+ * @category   Xi
+ * @package    Application
+ * @subpackage Resource
+ * @author     pekkis
+ * @todo       Some kind of initializer stuff for converting resources to init
  */
 class Filelib extends ResourceAbstract
 {
