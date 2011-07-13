@@ -18,7 +18,9 @@ namespace Xi\Application\Resource;
 
 use Zend_Application_Resource_ResourceAbstract as ResourceAbstract,
     InvalidArgumentException,
+    Memcache,
     Doctrine\Common\Cache\ArrayCache,
+    Doctrine\Common\Cache\MemcacheCache,
     Doctrine\ORM\EntityManager,
     Doctrine\ORM\Configuration;
 
@@ -105,12 +107,19 @@ class Doctrine extends ResourceAbstract
      * @param  array                        $options
      * @param  string                       $name
      * @return \Doctrine\Common\Cache\Cache
+     * @throws InvalidArgumentException
      */
     private function getCache(array $options, $name)
     {
-        return isset($options['cache'][$name])
+        $cache = isset($options['cache'][$name])
             ? new $options['cache'][$name]()
             : new ArrayCache();
+
+        if ($cache instanceof MemcacheCache) {
+            $cache->setMemcache($this->createMemcache($options));
+        }
+
+        return $cache;
     }
 
     /**
@@ -130,5 +139,27 @@ class Doctrine extends ResourceAbstract
         }
 
         return $dirs;
+    }
+
+    /**
+     * Creates a Memcache instance
+     *
+     * @param  array                    $options
+     * @return Memcache
+     * @throws InvalidArgumentException
+     */
+    private function createMemcache(array $options)
+    {
+        if (!isset($options['cache']['memcacheOptions']['host'])) {
+            throw new InvalidArgumentException('Memcache host is not configured');
+        } else if (!isset($options['cache']['memcacheOptions']['port'])) {
+            throw new InvalidArgumentException('Memcache port is not configured');
+        }
+
+        $memcache = new Memcache();
+        $memcache->connect($options['cache']['memcacheOptions']['host'],
+                           $options['cache']['memcacheOptions']['port']);
+
+        return $memcache;
     }
 }
