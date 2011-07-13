@@ -119,6 +119,10 @@ class Doctrine extends ResourceAbstract
             $cache->setMemcache($this->createMemcache($options));
         }
 
+        if (isset($options['cache']['namespace'])) {
+            $cache->setNamespace($options['cache']['namespace']);
+        }
+
         return $cache;
     }
 
