@@ -94,7 +94,7 @@ class Doctrine extends ResourceAbstract
             $config->setAutoGenerateProxyClasses(
                 (bool) isset($ormOptions['cache']['autoGenerateProxyClasses'])
                     ? $ormOptions['cache']['autoGenerateProxyClasses']
-                    : false
+                    : true
             );
 
             return EntityManager::create($options['dbal'], $config);
