@@ -87,7 +87,7 @@ class Doctrine extends ResourceAbstract
             $config->setQueryCacheImpl($this->getCache($ormOptions, 'queryCache'));
             $config->setResultCacheImpl($this->getCache($ormOptions, 'resultCache'));
             $config->setMetadataDriverImpl($config->newDefaultAnnotationDriver(
-                $this->getAnnotationDirs($ormOptions)
+                $this->getAnnotationDirectories($ormOptions)
             ));
             $config->setProxyDir(realpath($ormOptions['proxyDir']));
             $config->setProxyNamespace($ormOptions['proxyNamespace']);
@@ -132,7 +132,7 @@ class Doctrine extends ResourceAbstract
      * @param  array $options
      * @return array
      */
-    private function getAnnotationDirs(array $options)
+    private function getAnnotationDirectories(array $options)
     {
         $dirs = array();
 
