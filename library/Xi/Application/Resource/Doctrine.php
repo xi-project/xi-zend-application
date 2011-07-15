@@ -22,7 +22,9 @@ use Zend_Application_Resource_ResourceAbstract as ResourceAbstract,
     Doctrine\Common\Cache\ArrayCache,
     Doctrine\Common\Cache\MemcacheCache,
     Doctrine\ORM\EntityManager,
-    Doctrine\ORM\Configuration;
+    Doctrine\ORM\Configuration as ORMConfiguration,
+    Doctrine\ODM\MongoDB\DocumentManager as MongoDBDocumentManager,
+    Doctrine\ODM\MongoDB\Configuration as MongoDBConfiguration;
 
 /**
  * Doctrine application resource
@@ -43,12 +45,20 @@ class Doctrine extends ResourceAbstract
     private $em;
 
     /**
+     * Doctrine MongoDB ODM DocumentManager
+     *
+     * @var MongoDBDocumentManager
+     */
+    private $dmMongo;
+
+    /**
      * @return Doctrine
      * @throws InvalidArgumentException
      */
     public function init()
     {
-        $this->em = $this->initORM();
+        $this->em      = $this->initORM();
+        $this->dmMongo = $this->initODMMongoDB();
 
         return $this;
     }
@@ -59,6 +69,14 @@ class Doctrine extends ResourceAbstract
     public function getEntityManager()
     {
         return $this->em;
+    }
+
+    /**
+     * @return MongoDBDocumentManager|null
+     */
+    public function getMongoDBDocumentManager()
+    {
+        return $this->dmMongo;
     }
 
     /**
@@ -76,13 +94,11 @@ class Doctrine extends ResourceAbstract
 
             if (!isset($options['dbal'])) {
                 throw new InvalidArgumentException('DBAL must be configured to use ORM');
-            } else if (!isset($ormOptions['proxyDir'])) {
-                throw new InvalidArgumentException('Proxy dir must be configured');
-            } else if (!isset($ormOptions['proxyNamespace'])) {
-                throw new InvalidArgumentException('Proxy namespace must be configured');
             }
 
-            $config = new Configuration();
+            $this->assertProxyConfiguration($ormOptions);
+
+            $config = new ORMConfiguration();
             $config->setMetadataCacheImpl($this->getCache($ormOptions, 'metadataCache'));
             $config->setQueryCacheImpl($this->getCache($ormOptions, 'queryCache'));
             $config->setResultCacheImpl($this->getCache($ormOptions, 'resultCache'));
@@ -98,6 +114,50 @@ class Doctrine extends ResourceAbstract
             );
 
             return EntityManager::create($options['dbal'], $config);
+        }
+    }
+
+    /**
+     * Inits MongoDB ODM
+     *
+     * @return EntityManager|null
+     * @throws InvalidArgumentException
+     */
+    private function initODMMongoDB()
+    {
+        $options = $this->getOptions();
+
+        if (isset($options['odm']['mongoDb'])) {
+            $odmOptions = $options['odm']['mongoDb'];
+
+            $this->assertProxyConfiguration($odmOptions);
+            $this->assertHydratorConfiguration($odmOptions);
+
+            $config = new MongoDBConfiguration();
+            $config->setMetadataCacheImpl($this->getCache($odmOptions, 'metadataCache'));
+            $config->setMetadataDriverImpl($config->newDefaultAnnotationDriver(
+                $this->getAnnotationDirectories($odmOptions)
+            ));
+            $config->setProxyDir(realpath($odmOptions['proxyDir']));
+            $config->setProxyNamespace($odmOptions['proxyNamespace']);
+            $config->setAutoGenerateProxyClasses(
+                (bool) isset($odmOptions['autoGenerateProxyClasses'])
+                    ? $odmOptions['autoGenerateProxyClasses']
+                    : true
+            );
+            $config->setHydratorDir(realpath($odmOptions['hydratorDir']));
+            $config->setHydratorNamespace($odmOptions['hydratorNamespace']);
+            $config->setAutoGenerateHydratorClasses(
+                (bool) isset($odmOptions['autoGenerateHydratorClasses'])
+                    ? $odmOptions['autoGenerateHydratorClasses']
+                    : true
+            );
+
+            if (isset($odmOptions['defaultDb'])) {
+                $config->setDefaultDB($odmOptions['defaultDb']);
+            }
+
+            return MongoDBDocumentManager::create(null, $config);
         }
     }
 
@@ -165,5 +225,37 @@ class Doctrine extends ResourceAbstract
                            $options['memcache']['port']);
 
         return $memcache;
+    }
+
+    /**
+     * Assert proxy dir and namespace configuration options
+     *
+     * @param  array                    $options
+     * @return null
+     * @throws InvalidArgumentException
+     */
+    private function assertProxyConfiguration(array $options)
+    {
+        if (!isset($options['proxyDir'])) {
+            throw new InvalidArgumentException('Proxy dir must be configured');
+        } else if (!isset($options['proxyNamespace'])) {
+            throw new InvalidArgumentException('Proxy namespace must be configured');
+        }
+    }
+
+    /**
+     * Assert hydrator dir and namespace configuration options
+     *
+     * @param  array                    $options
+     * @return null
+     * @throws InvalidArgumentException
+     */
+    private function assertHydratorConfiguration(array $options)
+    {
+        if (!isset($options['hydratorDir'])) {
+            throw new InvalidArgumentException('Hydrator dir must be configured');
+        } else if (!isset($options['hydratorNamespace'])) {
+            throw new InvalidArgumentException('Hydrator namespace must be configured');
+        }
     }
 }
