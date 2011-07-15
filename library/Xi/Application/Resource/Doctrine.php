@@ -92,8 +92,8 @@ class Doctrine extends ResourceAbstract
             $config->setProxyDir(realpath($ormOptions['proxyDir']));
             $config->setProxyNamespace($ormOptions['proxyNamespace']);
             $config->setAutoGenerateProxyClasses(
-                (bool) isset($ormOptions['cache']['autoGenerateProxyClasses'])
-                    ? $ormOptions['cache']['autoGenerateProxyClasses']
+                (bool) isset($ormOptions['autoGenerateProxyClasses'])
+                    ? $ormOptions['autoGenerateProxyClasses']
                     : true
             );
 
@@ -111,8 +111,8 @@ class Doctrine extends ResourceAbstract
      */
     private function getCache(array $options, $name)
     {
-        $cache = isset($options['cache'][$name])
-            ? new $options['cache'][$name]()
+        $cache = isset($options[$name])
+            ? new $options[$name]()
             : new ArrayCache();
 
         if ($cache instanceof MemcacheCache) {
@@ -154,15 +154,15 @@ class Doctrine extends ResourceAbstract
      */
     private function createMemcache(array $options)
     {
-        if (!isset($options['cache']['memcacheOptions']['host'])) {
+        if (!isset($options['memcache']['host'])) {
             throw new InvalidArgumentException('Memcache host is not configured');
-        } else if (!isset($options['cache']['memcacheOptions']['port'])) {
+        } else if (!isset($options['memcache']['port'])) {
             throw new InvalidArgumentException('Memcache port is not configured');
         }
 
         $memcache = new Memcache();
-        $memcache->connect($options['cache']['memcacheOptions']['host'],
-                           $options['cache']['memcacheOptions']['port']);
+        $memcache->connect($options['memcache']['host'],
+                           $options['memcache']['port']);
 
         return $memcache;
     }
