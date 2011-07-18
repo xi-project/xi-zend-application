@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * Xi
+ *
+ * LICENSE
+ *
+ * This source file is subject to the new BSD license that is bundled with this
+ * package in the file LICENSE.
+ *
+ * @category   Xi
+ * @package    Application
+ * @subpackage Resource
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause New BSD License
+ */
+
 namespace Xi\Application\Resource;
 
 use Zend_Application_Resource_ResourceAbstract as ResourceAbstract,
@@ -12,12 +26,13 @@ use Zend_Application_Resource_ResourceAbstract as ResourceAbstract,
     Zend_Currency;
 
 /**
- * Cache resource
- * 
- * @author pekkis
- * @package Xi\Application
- * @todo The whole Zend Cache is soooo retarded. This does not work as it should work.
+ * Cache application resource
  *
+ * @category   Xi
+ * @package    Application
+ * @subpackage Resource
+ * @author     pekkis
+ * @todo       The whole Zend Cache is soooo retarded. This does not work as it should work.
  */
 class Cache extends ResourceAbstract
 {

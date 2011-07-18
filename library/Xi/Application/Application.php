@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Xi
+ *
+ * LICENSE
+ *
+ * This source file is subject to the new BSD license that is bundled with this
+ * package in the file LICENSE.
+ *
+ * @category Xi
+ * @package  Application
+ * @license  http://www.opensource.org/licenses/BSD-3-Clause New BSD License
+ */
+
 namespace Xi\Application;
 
 use Zend_Application,
@@ -9,14 +22,14 @@ require_once "Zend/Application.php";
 
 /**
  * An enhanced Zend_Application
- * 
- * Supports automagical caching of .ini type application configurations in either array or apc format.
- * Good for both ease of maintenance and speed.
- * 
- * @author pekkis
- * @package Xi\Application
- * @todo Add more cache backends (Xcache, Zend Server etc)
  *
+ * Supports automagical caching of .ini type application configurations in
+ * either array or apc format. Good for both ease of maintenance and speed.
+ *
+ * @category Xi
+ * @package  Application
+ * @author   pekkis
+ * @todo     Add more cache backends (Xcache, Zend Server etc)
  */
 class Application extends Zend_Application
 {
