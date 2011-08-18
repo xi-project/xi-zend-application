@@ -11,6 +11,7 @@ error_reporting(E_ALL | E_STRICT);
 set_include_path(implode(PATH_SEPARATOR, array(
     realpath(dirname(__DIR__) . DIRECTORY_SEPARATOR . 'library'),
     get_include_path(),
+    DOCTRINE_INCLUDE_PATH,
 )));
 
 /**
@@ -18,6 +19,9 @@ set_include_path(implode(PATH_SEPARATOR, array(
  */
 spl_autoload_register(function($class) {
     $filename = str_replace(array("\\", "_"), DIRECTORY_SEPARATOR, $class) . '.php';
-    require_once $filename;
+
+    // Allow class autoloading to fail silently.
+    @include $filename;
+
     return class_exists($class, false);
 });

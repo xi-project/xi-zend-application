@@ -66,32 +66,38 @@ class DoctrineTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * @test
+     */
+    public function configuringProxiesShouldSuffice()
+    {
+        $this->markTestSkippedIfDoctrineIsMissing();
+
+        $em = $this->getResource($this->getORMConfiguration(array(
+            'proxyDir'       => '',
+            'proxyNamespace' => 'Proxy',
+        )))->init()->getEntityManager();
+
+        $this->assertInstanceOf('Doctrine\ORM\EntityManager', $em);
+    }
+
+    /**
      * @return array
      */
-    public static function misconfiguredProxies()
+    public function misconfiguredProxies()
     {
         return array(
             array(
-                array(
-                    'orm'  => array(),
-                    'dbal' => array(),
-                )
+                $this->getORMConfiguration()
             ),
             array(
-                array(
-                    'orm'  => array(
-                        'proxyDir' => '',
-                    ),
-                    'dbal' => array(),
-                )
+                $this->getORMConfiguration(array(
+                    'proxyDir' => '',
+                ))
             ),
             array(
-                array(
-                    'orm'  => array(
-                        'proxyNamespace' => '',
-                    ),
-                    'dbal' => array(),
-                )
+                $this->getORMConfiguration(array(
+                    'proxyNamespace' => '',
+                ))
             ),
         );
     }
@@ -103,5 +109,31 @@ class DoctrineTest extends PHPUnit_Framework_TestCase
     private function getResource(array $options = array())
     {
         return new Doctrine($options);
+    }
+
+    /**
+     * Get basic ORM configuration.
+     *
+     * @param array $options
+     * @return type
+     */
+    private function getORMConfiguration(array $options = array())
+    {
+        return array(
+            'orm'  => $options,
+            'dbal' => array(
+                'driver' => 'pdo_mysql',
+            )
+        );
+    }
+
+    /**
+     * Marks a test skipped if Doctrine library is missing.
+     */
+    private function markTestSkippedIfDoctrineIsMissing()
+    {
+        if (!class_exists('\\Doctrine\ORM\EntityManager')) {
+            $this->markTestSkipped('Doctrine ORM library was not found in the include path.');
+        }
     }
 }
