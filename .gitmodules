@@ -1,3 +1,6 @@
 [submodule "external/assetic"]
 	path = external/assetic
 	url = https://github.com/kriswallsmith/assetic.git
+[submodule "external/zend-framework"]
+	path = external/zend-framework
+	url = git@github.com:xi-project/zend-framework.git
