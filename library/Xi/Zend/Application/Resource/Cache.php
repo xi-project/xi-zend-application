@@ -1,20 +1,5 @@
 <?php
-
-/**
- * Xi
- *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled with this
- * package in the file LICENSE.
- *
- * @category   Xi
- * @package    Application
- * @subpackage Resource
- * @license    http://www.opensource.org/licenses/BSD-3-Clause New BSD License
- */
-
-namespace Xi\Application\Resource;
+namespace Xi\Zend\Application\Resource;
 
 use Zend_Application_Resource_ResourceAbstract as ResourceAbstract,
     Zend_Application_Exception,
@@ -33,10 +18,10 @@ use Zend_Application_Resource_ResourceAbstract as ResourceAbstract,
  * @subpackage Resource
  * @author     pekkis
  * @todo       The whole Zend Cache is soooo retarded. This does not work as it should work.
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause New BSD License
  */
 class Cache extends ResourceAbstract
 {
-
     protected $backends;
 
     protected $frontends;
@@ -46,7 +31,6 @@ class Cache extends ResourceAbstract
      */
     public function init()
     {
-                
         $opts = $this->getOptions();
         
         $cm = $this->getBootstrap()->bootstrap('cachemanager')->getResource('cachemanager');
@@ -57,6 +41,7 @@ class Cache extends ResourceAbstract
                 $this->$method($cm->getCache($cache));
             }
         }
+        
         // output caching
         if(isset($opts['view'])) {
             $view = $this->getBootstrap()->bootstrap('view')->getResource('view');
@@ -66,10 +51,8 @@ class Cache extends ResourceAbstract
             }
             $view->cache()->setCache($cache);
         }
-        
 
         return $cm;
-
     }
     
     protected function _initTable(Zend_Cache_Core $cache)
@@ -82,7 +65,6 @@ class Cache extends ResourceAbstract
         Zend_Date::setOptions(array('cache' => $cache));
     }
     
-    
     protected function _initTranslate(Zend_Cache_Core $cache)
     {
         Zend_Translate::setCache($cache);
@@ -93,15 +75,8 @@ class Cache extends ResourceAbstract
         Zend_Locale::setCache($cache);
     }
     
-    
     protected function _initCurrency(Zend_Cache_Core $cache)
     {
         Zend_Currency::setCache($cache);
     }
-    
-    
-    
-            
-    
-
 }

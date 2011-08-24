@@ -1,20 +1,5 @@
 <?php
-
-/**
- * Xi
- *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled with this
- * package in the file LICENSE.
- *
- * @category   Xi
- * @package    Application
- * @subpackage Resource
- * @license    http://www.opensource.org/licenses/BSD-3-Clause New BSD License
- */
-
-namespace Xi\Application\Resource;
+namespace Xi\Zend\Application\Resource;
 
 use Zend_Application_Resource_ResourceAbstract as ResourceAbstract;
 
@@ -25,6 +10,7 @@ use Zend_Application_Resource_ResourceAbstract as ResourceAbstract;
  * @package    Application
  * @subpackage Resource
  * @author     pekkis
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause New BSD License
  */
 class Assetic extends ResourceAbstract
 {
@@ -44,7 +30,6 @@ class Assetic extends ResourceAbstract
         }
         return $this->assetCache;
     }
-    
     
     /**
      * Returns asset manager
@@ -92,9 +77,6 @@ class Assetic extends ResourceAbstract
             // $this->filterManager->set('closure', new \Assetic\Filter\UglifyJsFilter($options['uglifyPath']));
         }
         
-        
-        
-        
         return $this->filterManager;
     }
     
@@ -113,7 +95,6 @@ class Assetic extends ResourceAbstract
         return $this->assetFactory;
     }
     
-    
     public function init()
     {
         $options = $this->getOptions();
@@ -124,8 +105,6 @@ class Assetic extends ResourceAbstract
         $this->initAssets($options);
         return $this;
     }
-    
-    
     
     public function initAssets()
     {

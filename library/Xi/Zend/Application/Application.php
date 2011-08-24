@@ -1,23 +1,11 @@
 <?php
-
-/**
- * Xi
- *
- * LICENSE
- *
- * This source file is subject to the new BSD license that is bundled with this
- * package in the file LICENSE.
- *
- * @category Xi
- * @package  Application
- * @license  http://www.opensource.org/licenses/BSD-3-Clause New BSD License
- */
-
-namespace Xi\Application;
+namespace Xi\Zend\Application;
 
 use Zend_Application,
     Zend_Application_Exception;
 
+// NOTE: Autoloaders are not expected to be set up at the point of the bootstrap
+// process this class is used in.
 require_once "Zend/Application.php";
 
 /**
@@ -30,6 +18,7 @@ require_once "Zend/Application.php";
  * @package  Application
  * @author   pekkis
  * @todo     Add more cache backends (Xcache, Zend Server etc)
+ * @license  http://www.opensource.org/licenses/BSD-3-Clause New BSD License
  */
 class Application extends Zend_Application
 {
@@ -81,13 +70,7 @@ class Application extends Zend_Application
             define('APPLICATION_REVISION', $revision);
             define('APPLICATION_REVISION_URL', '?r=' . $revision);
         }
-        
-        
-        
     }
-
-    
-
 
     /**
      * Returns whether the application config is in a cached state or not
@@ -97,7 +80,6 @@ class Application extends Zend_Application
     {
         return $this->_isCached;
     }
-    
     
     /**
      * Tries to load config from cache.
@@ -125,7 +107,6 @@ class Application extends Zend_Application
         }
 
         return $noptions ?: $this->_loptions;
-
     }
 
     /**
@@ -139,7 +120,6 @@ class Application extends Zend_Application
     private function _cacheSave()
     {
         switch($this->_cache['type']) {
-            	
             case 'array':
                 $filename = $this->_loptions . ".{$this->_cache['key']}.php";
                 file_put_contents($filename, "<?php\n\$noptions = " . var_export($this->getBootstrap()->getOptions(), true) . ';');
@@ -151,11 +131,8 @@ class Application extends Zend_Application
                 require_once("Zend/Application/Exception.php");
                 throw new Zend_Application_Exception("Unsupported config cache type '{$this->_cache['type']}'");
         }
-
     }
 
-    
-    
     /**
      * @see Zend_Application::run()
      */
