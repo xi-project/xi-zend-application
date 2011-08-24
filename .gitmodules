@@ -1,0 +1,3 @@
+[submodule "external/assetic"]
+	path = external/assetic
+	url = https://github.com/kriswallsmith/assetic.git
