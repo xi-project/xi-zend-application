@@ -48,7 +48,6 @@ class Application extends Zend_Application
 		'type' => 'none',
         'key' => 'dawn',
     );
-
     
     public function __construct($environment, $options = null, $cache = array())
     {
