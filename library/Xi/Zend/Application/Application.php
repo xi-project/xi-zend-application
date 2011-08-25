@@ -143,6 +143,5 @@ class Application extends Zend_Application
         
         return parent::run();
     }
-
 }
 
