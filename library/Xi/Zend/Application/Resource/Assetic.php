@@ -1,7 +1,14 @@
 <?php
 namespace Xi\Zend\Application\Resource;
 
-use Zend_Application_Resource_ResourceAbstract as ResourceAbstract;
+use Zend_Application_Resource_ResourceAbstract as ResourceAbstract,
+    Assetic\AssetManager,
+    Assetic\FilterManager,
+    Assetic\Factory\AssetFactory,
+    Assetic\AssetWriter,
+    Assetic\Filter,
+    Assetic\Cache,
+    Assetic\Asset;
 
 /**
  * Assetic application resource
@@ -14,271 +21,215 @@ use Zend_Application_Resource_ResourceAbstract as ResourceAbstract;
  */
 class Assetic extends ResourceAbstract
 {
-
-    private $assetManager;
-    
-    private $filterManager;
-    
-    private $assetFactory;
-    
-    private $assetCache;
+    /**
+     * @var array default options
+     */
+    protected $_options = array(
+        'enabled' => true,
+        'publicPath' => null,
+        'cachePath' => null,
         
-    public function getAssetCache()
-    {
-        if(!$this->assetCache) {
-            $this->assetCache = new \Assetic\Cache\FilesystemCache(realpath(APPLICATION_PATH . '/../data/cache'));
-        }
-        return $this->assetCache;
-    }
+        'filters' => array(),
+        'parsers' => array(),
+        'directories' => array(),
+        'files' => array(),
+    );
     
     /**
-     * Returns asset manager
-     * 
-     * @return \Assetic\AssetManager
+     * @var Assetic\ServiceLocator
      */
-    public function getAssetManager()
-    {
-        if(!$this->assetManager) {
-            $this->assetManager = new \Assetic\AssetManager();
-        }
-        return $this->assetManager;
-    }
+    private $serviceLocator;
     
     /**
-     * Returns filter manager
-     * 
-     * @return \Assetic\FilterManager
+     * @return self 
      */
-    public function getFilterManager()
-    {
-        if(!$this->filterManager) {
-            
-            $options = $this->getOptions();
-            
-            $this->filterManager = new \Assetic\FilterManager();
-            
-            $lessFilter = new \Assetic\Filter\LessFilter(null, $options['nodePath']);
-            $lessFilter->setCompress(true);
-            
-            $this->filterManager->set('less', $lessFilter);
-            
-            $this->filterManager->set('closure', new \Assetic\Filter\GoogleClosure\CompilerJarFilter($options['closureCompilerPath'], $options['javaPath']));
-                        
-            $jpegOptimFilter = new \Assetic\Filter\JpegoptimFilter($options['jpegOptimPath']);
-            $jpegOptimFilter->setStripAll(true);
-
-            $this->filterManager->set('jpegoptim', $jpegOptimFilter);
-            
-            $optiPngFilter = new \Assetic\Filter\OptiPngFilter($options['optiPngPath']);
-            $optiPngFilter->setLevel(2);
-            
-            $this->filterManager->set('optipng', $optiPngFilter);
-            
-            // $this->filterManager->set('closure', new \Assetic\Filter\UglifyJsFilter($options['uglifyPath']));
-        }
-        
-        return $this->filterManager;
-    }
-    
-    /**
-     * Returns asset factory
-     * 
-     * @return \Assetic\Factory\AssetFactory
-     */
-    public function getAssetFactory()
-    {
-        if(!$this->assetFactory) {
-            $this->assetFactory = new \Assetic\Factory\AssetFactory(realpath(APPLICATION_PATH . '/../public'));
-            $this->assetFactory->setAssetManager($this->getAssetManager());
-            $this->assetFactory->setFilterManager($this->getFilterManager());
-        }
-        return $this->assetFactory;
-    }
-    
     public function init()
     {
         $options = $this->getOptions();
         
-        if($options['skip']) {
+        // Do not run if not enabled
+        if (!$options['enabled']) {
             return $this;
         }
+        
         $this->initAssets($options);
         return $this;
     }
     
-    public function initAssets()
-    {
-        $options = $this->getOptions();
-        
-        $defaultWoptions = array(
-            'combined' => true,
-            'leaves' => false,
-        );
-        $woptions = array();
-        
-        $am = $this->getAssetManager();
-        
-        $fm = $this->getFilterManager();
-        
-        $fassets = array();
-        
-        if (isset($options['parser'])) {
-            
-            foreach ($options['parser'] as $parser) {
-                
-                $filters = array();
-                foreach ($parser['files'] as $key => $file) {
-                    
-                    $filters[$key] = array();
-                    
-                    if(isset($file['filters'])) {
-                        foreach($file['filters'] as $f) {
-                            
-                            if (substr($f, 0, 1) == '?') {
-                                $fn = substr($f, 1);
-                                $init = (bool) !$parser['debug'];
-                            } else {
-                               $fn = $f;
-                               $init = true;
-                            }
-                            
-                            if($init) {
-                                
-                                if($fm->has($fn)) {
-                                    $filters[$key][] = $fm->get($fn);
-                                }
-                            }
-                        }
-                    }
-                   
-                }
-                
-                $diterator = new \RecursiveDirectoryIterator($parser['directory']);
-                $riterator = new \RecursiveIteratorIterator($diterator, \RecursiveIteratorIterator::SELF_FIRST);
-                                                
-                foreach ($riterator as $file) {
-                    if(isset($parser['blacklist'])) {
-                        foreach($parser['blacklist'] as $bl) {
-                            if (preg_match($bl, $file->getPathName())) {
-                                continue; 
-                            }
-                        }
-                    }
-                    
-                    foreach($parser['files'] as $key => $fopts) {
-
-                        $ppinfo = pathinfo($fopts['output']);
-                        
-                        if ($file->isFile() && preg_match($fopts['pattern'], $file->getFilename())) {
-                            
-                            $pinfo = pathinfo($file);
-                        
-                            $pinfo['dirname'] = str_ireplace($parser['directory'], $ppinfo['dirname'], $pinfo['dirname']);
-                            $pinfo['extension'] = $ppinfo['extension'];
-                        
-                            $fasset = new \Assetic\Asset\FileAsset($file->getPathName(), $filters[$key]);
-                            $fasset->setTargetUrl($pinfo['dirname'] . '/' . $pinfo['filename'] . '.' . $pinfo['extension']);
-                        
-                            $fassets[] = $fasset;
-                                
-                        }
-                        
-                    }
-                }
-            }
-        }
-        
-        $f = $this->getAssetFactory();
-        if(isset($options['collections'])) {
-            foreach($options['collections'] as $name => $coll) {
-                
-                $woptions[$name] = isset($coll['write']) ? $coll['write'] : array();
-                $woptions[$name] = array_merge($defaultWoptions, $woptions[$name]);
-                
-                $coll['options']['name'] = str_ireplace("{APPLICATION_REVISION}", APPLICATION_REVISION, $coll['options']['name']);
-                $asset = $f->createAsset($coll['inputs'], $coll['filters'], $coll['options']);
-                if($coll['cache']) {
-                    $asset = new \Assetic\Asset\AssetCache($asset, $this->getAssetCache());                     
-                }
-                $am->set($name, $asset);
-            }
-        }
-        
-        if(isset($options['fileAssets'])) {
-            foreach($options['fileAssets'] as $name => $fileAsset) {
-                
-                $asset = new \Assetic\Asset\FileAsset($fileAsset['path']);
-                $asset->setTargetUrl($fileAsset['targetUrl']);
-
-                if(isset($fileAsset['filters'])) {
-                    foreach($fileAsset['filters'] as $filter) {
-                        $f = $this->getFilterManager()->get($filter);
-                        $asset->ensureFilter($f);                        
-                    }
-                }
-                
-                $am->set($name, $asset);
-                
-            }
-            
-        }
-        
-        
-        
-        $am = $this->getAssetManager();
-        
-        $writer = new \Assetic\AssetWriter(APPLICATION_PATH . '/../public');
-
-        foreach ($fassets as $fasset) {
-            
-            if(file_exists(APPLICATION_PATH . '/../public' . '/' . $fasset->getTargetUrl())) {
-                
-                $amod = filemtime(APPLICATION_PATH . '/../public' . '/' . $fasset->getTargetUrl());
-
-                if ($fasset->getLastModified() <= $amod) {
-                    continue;
-                }
-                
-                
-                    
-            }
-            $writer->writeAsset($fasset);
-            
-        }
-                
-        foreach ($am->getNames() as $name) {
-            
-            $asset = $am->get($name);
-            if(file_exists(APPLICATION_PATH . '/../public' . '/' . $asset->getTargetUrl())) {
-                $amod = filemtime(APPLICATION_PATH . '/../public' . '/' . $asset->getTargetUrl());
-                if ($asset->getLastModified() <= $amod) {
-                    continue;
-                }
-            }
-                      
-
-            $writeOptions = $woptions[$name];
-            
-            if($writeOptions['combined']) {
-                $writer->writeAsset($asset);
-            }
-            
-            if($writeOptions['leaves']) {
-                foreach($asset as $leaf) {
-                    $writer->writeAsset($leaf);                    
-                }
-            }            
-        }
-        
+    /**
+     * Collect assets and write them to their targets
+     * 
+     * @param array $options 
+     * @return void
+     */
+    public function initAssets($options)
+    { 
+        $assets = $this->getAssets($options);
+        $this->writeAssets($assets, $this->getServiceLocator()->createAssetWriter());
     }
     
+    /**
+     * @param array $options
+     * @return array<Asset\AssetInterface>
+     */
+    protected function getAssets($options)
+    {
+        $directoryAssets = $this->parseDirectoryAssets(
+            $this->getServiceLocator()->createDirectoryParser(),
+            empty($options['directories']) ? array() : $options['directories']
+        );
+        $fileAssets = $this->parseFileAssets(
+            $this->getServiceLocator()->createFileAssetFactory(),
+            empty($options['files']) ? array() : $options['files']
+        );
+        return array_merge($directoryAssets, $fileAssets);
+    }
     
+    /**
+     * @param Assetic\DirectoryParsingFileAssetFactory $parser
+     * @param array $directories
+     * @return array<Asset\AssetInterface>
+     */
+    protected function parseDirectoryAssets($parser, $directories)
+    {
+        $result = array();
+        foreach ($directories as $directoryOptions) {
+            $assets = $parser->createAssetsFromDirectory($this->extractDirectoryOptions($directoryOptions));
+            $result = array_merge($result, $assets);
+        }
+        return $result;
+    }
     
+    /**
+     * @param Assetic\FileAssetFactory  $factory
+     * @param array $files
+     * @return array<Asset\AssetInterface>
+     */
+    protected function parseFileAssets($factory, $files)
+    {
+        $result = array();
+        foreach ($files as $fileOptions) {
+            $result[] = $factory->createFileAsset($this->extractFileOptions($fileOptions));
+        }
+        return $result;
+    }
     
+    /**
+     * @param array<Asset\AssetInterface> $assets
+     * @param AssetWriter $writer 
+     */
+    protected function writeAssets($assets, $writer)
+    {
+        foreach ($assets as $asset) {
+            if ($this->shouldWriteAsset($asset)) {
+                $writer->writeAsset($asset);
+            }
+        }
+        
+        $am = $this->getAssetManager();
+        
+        foreach ($am->getNames() as $name) {
+            $asset = $am->get($name);
+            if ($this->shouldWriteAsset($asset)) {
+                $writer->writeAsset($asset);
+            }
+        }
+    }
     
+    /**
+     * @param Asset\AssetInterface $asset
+     * @return boolean
+     */
+    protected function shouldWriteAsset($asset)
+    {
+        $absoluteTargetPath = $this->getAbsoluteAssetTargetPath($asset);
+        if (file_exists($absoluteTargetPath)) {
+            if ($asset->getLastModified() <= filemtime($absoluteTargetPath)) {
+                return false;
+            }
+        }
+        return true;
+    }
     
+    /**
+     * @param Asset\AssetInterface $asset
+     * @return string
+     */
+    protected function getAbsoluteAssetTargetPath($asset)
+    {
+        return $this->getRelativeApplicationPathOption('publicPath')
+            . DIRECTORY_SEPARATOR
+            . $asset->getTargetUrl();
+    }
     
+    /**
+     * @return array<SplFileParser>
+     */
+    protected function createParsers()
+    {
+        $parserFactory = $this->getServiceLocator()->getParserFactory();
+        $parsers = array();
+        foreach ($this->getOption('parsers', array()) as $name => $definition) {
+            $parsers[$name] = $parserFactory->createFileParser($definition);
+        }
+        return $parsers;
+    }
     
+    /**
+     * @param array $directoryOptions
+     * @return array
+     */
+    protected function extractDirectoryOptions($directoryOptions)
+    {
+        return array(
+            'path' => $directoryOptions['path'],
+            'parsers' => empty($directoryOptions['parsers']) ? array() : $directoryOptions['parsers'],
+            'blacklist' => empty($directoryOptions['blacklist']) ? array() : $directoryOptions['blacklist'],
+        );
+    }
     
+    /**
+     * @param array $fileOptions
+     * @return array
+     */
+    protected function extractFileOptions($fileOptions)
+    {
+        return array(
+            'inputs' =>     $fileOptions['inputs'],
+            'filters' =>    isset($fileOptions['filters']) ? $fileOptions['filters'] : array(),
+            'options' =>    isset($fileOptions['options']) ? $fileOptions['options'] : array(),
+            'output' =>     $fileOptions['output'],
+            'cache' =>      !empty($fileOptions['cache'])
+        );
+    }
     
+    /**
+     * @param string $name option
+     * @return string
+     */
+    protected function getRelativeApplicationPathOption($name)
+    {
+        return realpath(APPLICATION_PATH . DIRECTORY_SEPARATOR . $this->getOption($name));
+    }
+    
+    /**
+     * @param string $name
+     * @param mixed $default optional, defaults to null
+     * @return mixed
+     */
+    public function getOption($name, $default = null)
+    {
+        return isset($this->_options[$name]) ? $this->_options[$name] : $default;
+    }
+    
+    /**
+     * @return Assetic\ServiceLocator
+     */
+    public function getServiceLocator()
+    {
+        if (null === $this->serviceLocator) {
+            $this->serviceLocator = new Assetic\ServiceLocator($this->_options);
+        }
+        return $this->serviceLocator;
+    }
 }

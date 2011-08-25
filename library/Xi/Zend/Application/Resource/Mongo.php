@@ -31,6 +31,7 @@ class Mongo extends ResourceAbstract
 
     /**
      * @return MongoDb
+     * @throws Zend_Exception
      */
     public function init()
     {
