@@ -6,7 +6,7 @@ use Doctrine\Common\ClassLoader as DoctrineClassLoader;
 /**
  * Adds a DoctrineClassLoader to the autoloader used for each enabled module.
  */
-class ModuleAutoloaders extends AbstractResource
+class Moduleautoloaders extends AbstractResource
 {
     public function init()
     {
