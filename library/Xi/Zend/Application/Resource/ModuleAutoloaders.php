@@ -48,8 +48,13 @@ class ModuleAutoloaders extends AbstractResource
      */
     private function getModuleRoots()
     {
-        return array_map(function($controllerDirectory) {
-            return dirname(dirname($controllerDirectory));
-        }, $this->getFrontController()->getControllerDirectory());
+        $result = array();
+        foreach ($this->getFrontController()->getControllerDirectory() as $controllerDirectory) {
+            $moduleDirectory = dirname($controllerDirectory);
+            $moduleName = basename($moduleDirectory);
+            $moduleRoot = dirname($moduleDirectory);
+            $result[$moduleName] = $moduleRoot;
+        }
+        return $result;
     }
 }

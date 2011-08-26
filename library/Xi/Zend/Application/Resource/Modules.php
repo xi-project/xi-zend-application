@@ -49,6 +49,6 @@ class Modules extends Zend_Application_Resource_Modules
      */
     protected function formatBootstrapClass($module)
     {
-        return "$module\\Bootstrap";
+        return ucfirst($module)."\\Bootstrap";
     }
 }
