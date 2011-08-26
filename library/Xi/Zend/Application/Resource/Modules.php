@@ -1,50 +1,34 @@
 <?php
-namespace Xi\Zend\Application\Resources;
+namespace Xi\Zend\Application\Resource;
 
-class Modules extends \Zend_Application_Resource_ResourceAbstract
+use Zend_Application_Resource_Modules,
+    Zend_Application_Resource_Exception;
+
+class Modules extends Zend_Application_Resource_Modules
 {
     /**
      * NOTE: Copied over from parent class to parametrize bootstrap class format.
+     * Also added dependency to ModuleAutoloaders.
      *
      * @return array
      * @throws Zend_Application_Resource_Exception When bootstrap class was not found
      */
     public function init()
     {
-        $bootstraps = array();
         $bootstrap = $this->getBootstrap();
-        $bootstrap->bootstrap('FrontController')->bootstrap('ModuleAutoloaders');
+        $bootstrap->bootstrap(array('ModuleAutoloaders', 'FrontController'));
         $front = $bootstrap->getResource('FrontController');
 
         $modules = $front->getControllerDirectory();
         $default = $front->getDefaultModule();
         $curBootstrapClass = get_class($bootstrap);
+        
+        $bootstraps = array();
         foreach ($modules as $module => $moduleDirectory) {
             $bootstrapClass = $this->formatBootstrapClass($module);
-            if (!class_exists($bootstrapClass, false)) {
-                $bootstrapPath  = dirname($moduleDirectory) . '/Bootstrap.php';
-                if (file_exists($bootstrapPath)) {
-                    $eMsgTpl = 'Bootstrap file found for module "%s" but bootstrap class "%s" not found';
-                    include_once $bootstrapPath;
-                    if (($default != $module)
-                        && !class_exists($bootstrapClass, false)
-                    ) {
-                        throw new Zend_Application_Resource_Exception(sprintf(
-                            $eMsgTpl, $module, $bootstrapClass
-                        ));
-                    } elseif ($default == $module) {
-                        if (!class_exists($bootstrapClass, false)) {
-                            $bootstrapClass = 'Bootstrap';
-                            if (!class_exists($bootstrapClass, false)) {
-                                throw new Zend_Application_Resource_Exception(sprintf(
-                                    $eMsgTpl, $module, $bootstrapClass
-                                ));
-                            }
-                        }
-                    }
-                } else {
-                    continue;
-                }
+            // Relying on module autoloaders to find the class for us
+            if (!class_exists($bootstrapClass)) {
+                throw new Zend_Application_Resource_Exception("Bootstrap class '$bootstrapClass' not found");
             }
 
             if ($bootstrapClass == $curBootstrapClass) {
@@ -65,6 +49,6 @@ class Modules extends \Zend_Application_Resource_ResourceAbstract
      */
     protected function formatBootstrapClass($module)
     {
-        return $this->_formatModuleName($module) . '_Bootstrap';
+        return "$module\\Bootstrap";
     }
 }

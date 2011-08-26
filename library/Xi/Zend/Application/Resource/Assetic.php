@@ -1,8 +1,7 @@
 <?php
 namespace Xi\Zend\Application\Resource;
 
-use Zend_Application_Resource_ResourceAbstract as ResourceAbstract,
-    Assetic\AssetManager,
+use Assetic\AssetManager,
     Assetic\FilterManager,
     Assetic\Factory\AssetFactory,
     Assetic\AssetWriter,
@@ -19,7 +18,7 @@ use Zend_Application_Resource_ResourceAbstract as ResourceAbstract,
  * @author     pekkis
  * @license    http://www.opensource.org/licenses/BSD-3-Clause New BSD License
  */
-class Assetic extends ResourceAbstract
+class Assetic extends AbstractResource
 {
     /**
      * @var array default options
