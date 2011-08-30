@@ -1,8 +1,7 @@
 <?php
 namespace Xi\Zend\Application\Resource;
 
-use Zend_Application_Resource_ResourceAbstract as ResourceAbstract,
-    InvalidArgumentException,
+use InvalidArgumentException,
     Memcache,
     Doctrine\Common\Cache\ArrayCache,
     Doctrine\Common\Cache\MemcacheCache,
@@ -21,8 +20,13 @@ use Zend_Application_Resource_ResourceAbstract as ResourceAbstract,
  * @author     Mikko Hirvonen <mikko.petteri.hirvonen@gmail.com>
  * @license    http://www.opensource.org/licenses/BSD-3-Clause New BSD License
  */
-class Doctrine extends ResourceAbstract
+class Doctrine extends AbstractResource
 {
+    /**
+     * @var ORMConfiguration
+     */
+    private $ormConfig;
+    
     /**
      * Doctrine ORM EntityManager
      *
@@ -43,8 +47,11 @@ class Doctrine extends ResourceAbstract
      */
     public function init()
     {
-        $this->em      = $this->initORM();
-        $this->dmMongo = $this->initODMMongoDB();
+        $this->ormConfig = $this->initORMConfig();
+        $this->em        = $this->initORM();
+        $this->dmMongo   = $this->initODMMongoDB();
+        
+        $this->initEntityAutoloading();
 
         return $this;
     }
@@ -56,6 +63,18 @@ class Doctrine extends ResourceAbstract
     {
         return $this->em;
     }
+    
+    /**
+     * @return EntityManager|null
+     */
+    public function recreateEntityManager()
+    {
+        if ($this->em && $this->em->isOpen()) {
+            $this->em->close();
+        }
+        $this->em = $this->initORM();
+        return $this->em;
+    }
 
     /**
      * @return MongoDBDocumentManager|null
@@ -65,16 +84,14 @@ class Doctrine extends ResourceAbstract
         return $this->dmMongo;
     }
 
-    /**
-     * Inits ORM
-     *
-     * @return EntityManager|null
-     * @throws InvalidArgumentException
-     */
-    private function initORM()
+    public function getORMConfig()
+    {
+        return $this->ormConfig;
+    }
+    
+    private function initORMConfig()
     {
         $options = $this->getOptions();
-
         if (isset($options['orm'])) {
             $ormOptions = $options['orm'];
 
@@ -99,7 +116,27 @@ class Doctrine extends ResourceAbstract
                     : true
             );
 
+            return $config;
+        } else {
+            return null;
+        }
+    }
+    
+    /**
+     * Inits ORM
+     *
+     * @return EntityManager|null
+     * @throws InvalidArgumentException
+     */
+    private function initORM()
+    {
+        $options = $this->getOptions();
+        $config = $this->getORMConfig();
+
+        if ($config) {
             return EntityManager::create($options['dbal'], $config);
+        } else {
+            return null;
         }
     }
 
@@ -144,6 +181,23 @@ class Doctrine extends ResourceAbstract
             }
 
             return MongoDBDocumentManager::create(null, $config);
+        } else {
+            return null;
+        }
+    }
+    
+    /**
+     * Add autoloaders for entities.
+     */
+    private function initEntityAutoloading()
+    {
+        $options = $this->getOptions();
+        $config = $this->getORMConfig();
+        if ($config) {
+            foreach ($this->getAnnotationDirectories($options['orm']) as $dir) {
+                $loader = new \Xi\Zend\Application\ClassLoader(null, $dir);
+                $this->getAutoloader()->pushAutoloader(array($loader, 'loadClass'));
+            }
         }
     }
 

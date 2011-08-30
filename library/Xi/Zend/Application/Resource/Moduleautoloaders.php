@@ -28,14 +28,6 @@ class Moduleautoloaders extends AbstractResource
     }
     
     /**
-     * @return \Zend_Loader_Autoloader
-     */
-    private function getAutoloader()
-    {
-        return $this->getBootstrap()->getApplication()->getAutoloader();
-    }
-    
-    /**
      * @return \Zend_Controller_Front
      */
     private function getFrontController()
