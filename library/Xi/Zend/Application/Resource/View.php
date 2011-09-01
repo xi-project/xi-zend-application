@@ -1,10 +1,13 @@
 <?php
 namespace Xi\Zend\Application\Resource;
 
+use Zend_Application_Resource_View,
+    Zend_Controller_Action_HelperBroker;
+
 /**
  * Makes views and view helpers use our alternative path scheme.
  */
-class View extends \Zend_Application_Resource_View
+class View extends Zend_Application_Resource_View
 {
     public function init()
     {
@@ -14,13 +17,21 @@ class View extends \Zend_Application_Resource_View
     
     protected function initViewRenderer()
     {
-        if (\Zend_Controller_Action_HelperBroker::hasHelper('viewRenderer')) {
+        if (Zend_Controller_Action_HelperBroker::hasHelper('viewRenderer')) {
             throw new Exception("View renderer already registered in helper broker.");
         }
         
-        $vr = new \Xi\Zend\Mvc\Action\Helper\ViewRenderer();
+        Zend_Controller_Action_HelperBroker::addHelper($this->createViewRenderer());
+    }
+    
+    /**
+     * @return Xi\Zend\Mvc\ActionHelper\ViewRenderer 
+     */
+    protected function createViewRenderer()
+    {
+        $vr = new \Xi\Zend\Mvc\ActionHelper\ViewRenderer();
         $vr->setViewBasePathSpec(':moduleDir/Resources/views');
-        \Zend_Controller_Action_HelperBroker::addHelper($vr);
+        return $vr;
     }
     
     /**

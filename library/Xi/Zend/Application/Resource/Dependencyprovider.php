@@ -9,13 +9,18 @@ use \Xi\Zend\Application\DI;
  */
 class Dependencyprovider extends AbstractResource
 {
+    /**
+     * @var string fully qualified class name
+     */
+    protected $defaultDependencyProviderClass = 'Xi\Zend\Application\DI\DefaultDependencyProvider';
+    
     public function init()
     {
         $options = $this->getOptions();
         if (isset($options['className'])) {
             $class = $options['className'];
         } else {
-            $class = 'Xi\Zend\Application\DI\DefaultDependencyProvider';
+            $class = $this->defaultDependencyProviderClass;
         }
         $obj = new $class($this->getBootstrap());
         DI\DependencyProvider::setDefault($obj);
