@@ -1,10 +1,10 @@
 <?php
 namespace Xi\Zend\Application\Resource;
 
-use Doctrine\Common\ClassLoader as DoctrineClassLoader;
+use \Xi\Zend\Application\ClassLoader;
 
 /**
- * Adds a DoctrineClassLoader to the autoloader used for each enabled module.
+ * Adds a \Xi\Zend\Application\ClassLoader to the autoloader used for each enabled module.
  */
 class Moduleautoloaders extends AbstractResource
 {
@@ -12,9 +12,27 @@ class Moduleautoloaders extends AbstractResource
     {
         $this->getBootstrap()->bootstrap('FrontController');
         $autoloader = $this->getAutoloader();
+        $autoloader->pushAutoloader($this->getLibraryAutoloader());
+        $autoloader->pushAutoloader($this->getApplicationLibraryAutoloader());
         foreach ($this->getModuleRoots() as $moduleName => $moduleRoot) {
             $autoloader->pushAutoloader($this->getNamespaceAutoloader($moduleName, $moduleRoot), "$moduleName\\");
         }
+    }
+    
+    /**
+     * @return callback
+     */
+    protected function getLibraryAutoloader()
+    {
+        return array(new ClassLoader(null, realpath(APPLICATION_PATH . '/../library')), 'loadClass');
+    }
+    
+    /**
+     * @return callback
+     */
+    protected function getApplicationLibraryAutoloader()
+    {
+        return array(new ClassLoader(null, APPLICATION_PATH . '/library'), 'loadClass');
     }
     
     /**
@@ -24,13 +42,13 @@ class Moduleautoloaders extends AbstractResource
      */
     protected function getNamespaceAutoloader($namespace, $root)
     {
-        return array(new DoctrineClassLoader($namespace, $root), 'loadClass');
+        return array(new ClassLoader($namespace, $root), 'loadClass');
     }
     
     /**
      * @return \Zend_Controller_Front
      */
-    private function getFrontController()
+    protected function getFrontController()
     {
         return $this->getBootstrap()->getResource('FrontController');
     }
@@ -38,7 +56,7 @@ class Moduleautoloaders extends AbstractResource
     /**
      * @return array<ModuleName => root>
      */
-    private function getModuleRoots()
+    protected function getModuleRoots()
     {
         $result = array();
         foreach ($this->getFrontController()->getControllerDirectory() as $controllerDirectory) {
