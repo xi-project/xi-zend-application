@@ -24,7 +24,7 @@ class Moduleautoloaders extends AbstractResource
      */
     protected function getLibraryAutoloader()
     {
-        return array(new ClassLoader(null, realpath(APPLICATION_PATH . '/../library')), 'loadClass');
+        return $this->getNamespaceAutoloader(null, realpath(APPLICATION_PATH . '/../library'));
     }
     
     /**
@@ -32,7 +32,7 @@ class Moduleautoloaders extends AbstractResource
      */
     protected function getApplicationLibraryAutoloader()
     {
-        return array(new ClassLoader(null, APPLICATION_PATH . '/library'), 'loadClass');
+        return $this->getNamespaceAutoloader(null, APPLICATION_PATH . '/library');
     }
     
     /**
