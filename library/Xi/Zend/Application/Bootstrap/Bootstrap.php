@@ -1,8 +1,7 @@
 <?php
 namespace Xi\Zend\Application\Bootstrap;
 
-use Doctrine\Common\ClassLoader as DoctrineClassLoader,
-    Zend_Application_Bootstrap_Exception,
+use Zend_Application_Bootstrap_Exception,
     Zend_Application_Resource_Resource;
 
 class Bootstrap extends \Zend_Application_Bootstrap_Bootstrap
@@ -48,6 +47,7 @@ class Bootstrap extends \Zend_Application_Bootstrap_Bootstrap
     protected function getNamespaceAutoloader($namespace, $root)
     {
         require_once $this->getLibraryPath() . '/Doctrine/Common/ClassLoader.php';
-        return array(new DoctrineClassLoader($namespace, $root), 'loadClass');
+        require_once $this->getLibraryPath() . '/Xi/Zend/Application/ClassLoader.php';
+        return array(new \Xi\Zend\Application\ClassLoader($namespace, $root), 'loadClass');
     }
 }
