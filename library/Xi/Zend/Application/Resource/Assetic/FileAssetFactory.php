@@ -5,7 +5,11 @@ use Assetic\Asset,
     Assetic\Cache,
     Assetic\Factory\AssetFactory;
 
-class FileAssetFactory extends AbstractConfigurable
+/**
+ * A straightforward encapsulation of the creation of file assets with an input
+ * configuration parameter convention and the option for caching
+ */
+class FileAssetFactory
 {
     /**
      * @var AssetFactory

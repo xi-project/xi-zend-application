@@ -1,8 +1,7 @@
 <?php
 namespace Xi\Zend\Application\Resource\Assetic;
 
-use Assetic\Asset\FileAsset,
-    SplFileInfo as File;
+use SplFileInfo as File;
 
 /**
  * Creates FileAssets from SplFileInfo objects. Decides whether input files are
@@ -26,7 +25,7 @@ class SplFileParser extends AbstractConfigurable
     private $assetFactory;
     
     /**
-     * @param AssetFactory $assetFactory
+     * @param FileAssetFactory $assetFactory
      * @param array $options
      */
     public function __construct($assetFactory, $options)
@@ -51,7 +50,8 @@ class SplFileParser extends AbstractConfigurable
      */
     protected function matches($filename)
     {
-        return preg_match($this->getOption('match'), $filename);
+        $matcher = "%" . str_replace("%", "\\%", $this->getOption('match')) . "%";
+        return preg_match($matcher, $filename);
     }
     
     /**
@@ -63,10 +63,10 @@ class SplFileParser extends AbstractConfigurable
     {
         return $this->getAssetFactory()->createFileAsset(array(
             'inputs' =>     array($file->getPathname()),
-            'options' =>    $this->getAssetOptions($root, $file),
-            'filters' =>    $this->getOption('filters', array()),
-            'output' =>     $this->getOption('output'),
-            'cache' =>      (bool) $this->getOption('cache')
+            'options' =>    (array) $this->getAssetOptions($root, $file),
+            'filters' =>    (array) $this->getOption('filters', array()),
+            'output' =>     (string) $this->getOption('output'),
+            'cache' =>      (bool) $this->getOption('cache'),
         ));
     }
     
@@ -77,12 +77,27 @@ class SplFileParser extends AbstractConfigurable
      */
     protected function getAssetOptions($root, $file)
     {
-        $pathinfo = pathinfo($file->getPathname());
-        
         return array(
             'root' => $root,
-            'name' => $pathinfo['filename']
+            'name' => $this->formatAssetName($root, $file)
         );
+    }
+    
+    /**
+     * Return's the described file's name in relation to the root while omitting
+     * the file extension
+     *  
+     * @param string $root
+     * @param File $file
+     * @return string
+     */
+    protected function formatAssetName($root, $file)
+    {
+        $pathinfo = pathinfo($file->getPathname());
+        $directory = str_replace($root, '', $pathinfo['dirname']);
+        $baseName = str_replace('.' . $pathinfo['extension'], '', $pathinfo['basename']);
+        $assetName = ltrim($directory, '/') . '/' . $baseName;
+        return $assetName;
     }
     
     /**

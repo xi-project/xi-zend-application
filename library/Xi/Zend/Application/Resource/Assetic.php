@@ -15,7 +15,6 @@ use Assetic\AssetManager,
  * @category   Xi
  * @package    Application
  * @subpackage Resource
- * @author     pekkis
  * @license    http://www.opensource.org/licenses/BSD-3-Clause New BSD License
  */
 class Assetic extends AbstractResource
@@ -74,7 +73,7 @@ class Assetic extends AbstractResource
     protected function getAssets($options)
     {
         $directoryAssets = $this->parseDirectoryAssets(
-            $this->getServiceLocator()->createDirectoryParser(),
+            $this->getServiceLocator()->createDirectoryParser($this->createParsers()),
             empty($options['directories']) ? array() : $options['directories']
         );
         $fileAssets = $this->parseFileAssets(
@@ -114,51 +113,23 @@ class Assetic extends AbstractResource
     }
     
     /**
+     * Writes the given explicit assets and any implicit assets in the asset
+     * manager
+     * 
      * @param array<Asset\AssetInterface> $assets
      * @param AssetWriter $writer 
      */
     protected function writeAssets($assets, $writer)
     {
         foreach ($assets as $asset) {
-            if ($this->shouldWriteAsset($asset)) {
-                $writer->writeAsset($asset);
-            }
+            $writer->writeAsset($asset);
         }
         
-        $am = $this->getAssetManager();
+        $am = $this->getServiceLocator()->getAssetManager();
         
         foreach ($am->getNames() as $name) {
-            $asset = $am->get($name);
-            if ($this->shouldWriteAsset($asset)) {
-                $writer->writeAsset($asset);
-            }
+            $writer->writeAsset($am->get($name));
         }
-    }
-    
-    /**
-     * @param Asset\AssetInterface $asset
-     * @return boolean
-     */
-    protected function shouldWriteAsset($asset)
-    {
-        $absoluteTargetPath = $this->getAbsoluteAssetTargetPath($asset);
-        if (file_exists($absoluteTargetPath)) {
-            if ($asset->getLastModified() <= filemtime($absoluteTargetPath)) {
-                return false;
-            }
-        }
-        return true;
-    }
-    
-    /**
-     * @param Asset\AssetInterface $asset
-     * @return string
-     */
-    protected function getAbsoluteAssetTargetPath($asset)
-    {
-        return $this->getRelativeApplicationPathOption('publicPath')
-            . DIRECTORY_SEPARATOR
-            . $asset->getTargetUrl();
     }
     
     /**
@@ -169,7 +140,7 @@ class Assetic extends AbstractResource
         $parserFactory = $this->getServiceLocator()->getParserFactory();
         $parsers = array();
         foreach ($this->getOption('parsers', array()) as $name => $definition) {
-            $parsers[$name] = $parserFactory->createFileParser($definition);
+            $parsers[$name] = $parserFactory($definition);
         }
         return $parsers;
     }

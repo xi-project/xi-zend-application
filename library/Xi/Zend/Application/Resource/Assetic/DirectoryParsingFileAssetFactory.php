@@ -5,7 +5,7 @@ namespace Xi\Zend\Application\Resource\Assetic;
 class DirectoryParsingFileAssetFactory
 {
     /**
-     * @var SplFileParserFactory
+     * @var callback(array $options)
      */
     private $parserFactory;
     
@@ -15,7 +15,7 @@ class DirectoryParsingFileAssetFactory
     private $parsers;
     
     /**
-     * @param SplFileParserFactory $parserFactory
+     * @param callback(array $options) $parserFactory
      * @param array<SplFileParser> $parsers
      */
     public function __construct($parserFactory, $parsers)
@@ -98,7 +98,8 @@ class DirectoryParsingFileAssetFactory
      */
     protected function createParser($options)
     {
-        return $this->parserFactory->createFileParser($options);
+        $create = $this->parserFactory;
+        return $create($options);
     }
     
     /**

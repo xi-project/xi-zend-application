@@ -1,6 +1,12 @@
 <?php
 namespace Xi\Zend\Application\Resource\Assetic;
 
+use Assetic\AssetManager,
+    Assetic\FilterManager,
+    Assetic\Factory\AssetFactory,
+    Assetic\AssetWriter,
+    Assetic\Cache;
+
 class ServiceLocator extends AbstractConfigurable
 {
     /**
@@ -52,14 +58,17 @@ class ServiceLocator extends AbstractConfigurable
     }
     
     /**
-     * @return Assetic\SplFileParserFactory
+     * @return callback(array $options)
      */
-    protected function getParserFactory()
+    public function getParserFactory()
     {
-        if (null === $this->parserFactory) {
-            $this->parserFactory = $this->createParserFactory();
-        }
-        return $this->parserFactory;
+        $assetFactory = $this->createFileAssetFactory();
+        return function(array $options) use($assetFactory) {
+            return new SplFileParser(
+                $assetFactory,
+                $options
+            );
+        };
     }
     
     /**
@@ -79,11 +88,11 @@ class ServiceLocator extends AbstractConfigurable
     }
     
     /**
-     * @return Assetic\FilterManagerFactory
+     * @return FilterManagerFactory
      */
     protected function createFilterManagerFactory()
     {
-        return new Assetic\FilterManagerFactory($this->getEnabledFilters());
+        return new FilterManagerFactory($this->getEnabledFilters());
     }
     
     /**
@@ -100,35 +109,28 @@ class ServiceLocator extends AbstractConfigurable
     }
     
     /**
-     * @return Assetic\SplFileParserFactory
-     */
-    protected function createParserFactory()
-    {
-        return new Assetic\SplFileParserFactory($this->getAssetFactory());
-    }
-    
-    /**
      * @return AssetWriter 
      */
     public function createAssetWriter()
     {
-        return new AssetWriter();
+        return new AssetWriter($this->getPublicPath());
     }
     
     /**
-     * @return Assetic\DirectoryParsingFileAssetFactory 
+     * @param array<SplFileParser> $parsers
+     * @return DirectoryParsingFileAssetFactory 
      */
-    public function createDirectoryParser()
+    public function createDirectoryParser($parsers)
     {
-        return new Assetic\DirectoryParsingFileAssetFactory($this->getParserFactory(), $this->createParsers());
+        return new DirectoryParsingFileAssetFactory($this->getParserFactory(), $parsers);
     }
     
     /**
-     * @return Assetic\FileAssetFactory 
+     * @return FileAssetFactory 
      */
     public function createFileAssetFactory()
     {
-        return new Assetic\FileAssetFactory($this->getAssetFactory(), $this->createAssetCache());
+        return new FileAssetFactory($this->getAssetFactory(), $this->createAssetCache());
     }
     
     /**
